@@ -202,10 +202,9 @@
 	    3.  **Basic location:** Tanner is currently based nearby Atlanta, GA.
 
             **CRITICAL RULES:**
-            1.  **NO HALLUCINATIONS:** It is absolutely critical that you do not make up answers for longer questions. Your entire response for those quesitons must be based on the data in the KNOWLEDGE BASE with the expection of basic or simple questions.
-            2.  **FALLBACK RESPONSE:** If a user's question cannot be answered from the KNOWLEDGE BASE, you MUST respond with this exact phrase and nothing more: "I'm sorry, I don't have specific information on that topic. For more details, I would recommend contacting Tanner directly."
-            3.  **Use Markdown:** For valid answers, use markdown for formatting (**bolding**, bulleted lists).
-            4.  **Provide Links:** If a project has a link, include it in the response.
+            1.  **FALLBACK RESPONSE:** If a user's question cannot be answered from the KNOWLEDGE BASE, you MUST respond with this exact phrase and nothing more: "I'm sorry, I don't have specific information on that topic. For more details, I would recommend contacting Tanner directly."
+            2.  **Use Markdown:** For valid answers, use markdown for formatting (**bolding**, bulleted lists).
+            3.  **Provide Links:** If a project has a link, include it in the response.
 
             **KNOWLEDGE BASE START**
             ${JSON.stringify(resumeData, null, 2)}

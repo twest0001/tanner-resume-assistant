@@ -172,9 +172,22 @@
             }
         };
 
-        chatForm.addEventListener('submit', (e) => { e.preventDefault(); submitForm(); });
-        chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitForm(); } });
-        chatInput.addEventListener('input', () => { chatInput.style.height = 'auto'; chatInput.style.height = (chatInput.scrollHeight) + 'px'; });
+        chatForm.addEventListener('submit', (e) => { 
+            e.preventDefault(); 
+            submitForm(); 
+        });
+
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitForm();
+            }
+        });
+        
+        chatInput.addEventListener('input', () => { 
+            chatInput.style.height = 'auto'; 
+            chatInput.style.height = (chatInput.scrollHeight) + 'px'; 
+        });
 
         function appendMessage(sender, message) {
             const messageWrapper = document.createElement('div');
@@ -196,7 +209,7 @@
             const obfuscatedKey = "QUl6YVN5RGd5YzNoTE9tcGlyVVNwaE5RWGFOZ19Ba1E5U1d0MkVN";
             const apiKey = atob(obfuscatedKey);
             
-            const fullPrompt = \`You are a professional, friendly chatbot assistant for \${resumeData.fullName}'s resume. Your primary directive is to be truthful and stick strictly to the information provided.
+            const fullPrompt = `You are a professional, friendly chatbot assistant for ${resumeData.fullName}'s resume. Your primary directive is to be truthful and stick strictly to the information provided.
             
             **YOUR KNOWLEDGE BASE:**
             You have access to three main sources of information:
@@ -210,12 +223,12 @@
             3.  **Provide Links:** If a project has a link, include it in the response.
 
             **KNOWLEDGE BASE START**
-            \${JSON.stringify(resumeData, null, 2)}
+            ${JSON.stringify(resumeData, null, 2)}
             **KNOWLEDGE BASE END**
 
-            Now, please answer the following question from a potential employer: "\${userMessage}"\`;
+            Now, please answer the following question from a potential employer: "${userMessage}"`;
             
-            const apiUrl = \`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=\${apiKey}\`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -225,7 +238,7 @@
 
             if (!response.ok) {
                 const errorBody = await response.text();
-                throw new Error(\`The AI service returned an error. Please check if the API key is valid. Status: \${response.status}\`);
+                throw new Error(`The AI service returned an error. Please check if the API key is valid. Status: ${response.status}`);
             }
             
             const result = await response.json();
@@ -234,7 +247,7 @@
                 return result.candidates[0].content.parts[0].text;
             } else if (result.promptFeedback && result.promptFeedback.blockReason) {
                 console.error("AI response blocked:", result.promptFeedback);
-                return \`My response was blocked for the following reason: \${result.promptFeedback.blockReason}. This can sometimes happen with safety filters. Please try rephrasing your question.\`;
+                return `My response was blocked for the following reason: ${result.promptFeedback.blockReason}. This can sometimes happen with safety filters. Please try rephrasing your question.`;
             } else {
                 console.error("Unexpected AI response format:", result);
                 throw new Error("The AI service returned an unexpected or empty response.");
@@ -249,7 +262,7 @@
             // This is the unique ID for your form's question field.
             const FORM_ENTRY_ID = "entry.381895239";
 
-            const conversationLog = \`Timestamp: \${new Date().toISOString()}\\n\\n---User Question---\\n\${userMessage}\\n\\n---Bot Response---\\n\${botResponse}\`;
+            const conversationLog = `Timestamp: ${new Date().toISOString()}\n\n---User Question---\n${userMessage}\n\n---Bot Response---\n${botResponse}`;
 
             const formData = new FormData();
             formData.append(FORM_ENTRY_ID, conversationLog);

@@ -62,7 +62,7 @@
             </div>
             <div class="p-5 border-t border-slate-700">
                 <form id="chat-form" class="flex items-start space-x-4">
-                    <textarea id="chat-input" placeholder="e.g., Why should I hire him?" rows="1" class="flex-1 p-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-slate-200 resize-none"></textarea>
+                    <textarea id="chat-input" placeholder="e.g., What's his contact info?" rows="1" class="flex-1 p-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-slate-200 resize-none"></textarea>
                     <button id="submit-btn" type="submit" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition">Send</button>
                 </form>
             </div>
@@ -76,7 +76,6 @@
         const loadingIndicator = document.getElementById('loading-indicator');
         const submitBtn = document.getElementById('submit-btn');
 
-        // The entire knowledge base for the AI is stored here.
         const resumeData = {
             fullName: "Tanner West",
             jobTitle: "Game Developer & Sound Designer",
@@ -132,7 +131,7 @@
                 appendMessage('bot', botResponse);
             } catch (error) {
                 console.error("Error:", error);
-                appendMessage('bot', `I've encountered an technical error. This is likely due to an issue with the API configuration (e.g. an invalid model name or API key). Please check the console for details.`);
+                appendMessage('bot', `I've encountered a technical error. This is likely due to an issue with the API configuration (e.g. an invalid model name or API key). Please check the console for details.`);
             } finally {
                 toggleLoading(false);
                 chatInput.focus();
@@ -162,7 +161,6 @@
             const obfuscatedKey = "QUl6YVN5RGd5YzNoTE9tcGlyVVNwaE5RWGFOZ19Ba1E5U1d0MkVN";
             const apiKey = atob(obfuscatedKey);
             
-            // --- REFINED "GET THE JOB" PROMPT ---
             const fullPrompt = `You are Tanner West's AI Recruitment Advocate. Your SOLE purpose is to answer questions from recruiters based ONLY on the detailed information provided below. Your goal is to persuasively convince them to hire Tanner.
 
             **YOUR KNOWLEDGE BASE:**
@@ -171,13 +169,13 @@
 
             **CRITICAL RULES OF ENGAGEMENT:**
             1.  **NEVER ASK FOR INFORMATION:** You already have all the information about Tanner. Absolutely do not ask the user for details about him. Your job is to ANSWER questions, not ask them. If you break this rule, you fail.
-            2.  **BE A PERSUASIVE ADVOCATE:** Do not just list facts. Connect Tanner's skills to the value they bring. Frame every response positively to highlight his strengths as a candidate. For example, instead of "He used Unreal Engine", say "He has direct professional experience with **Unreal Engine 5**, a critical skill for any modern game studio, which he used to build client demos."
-            3.  **STRATEGICALLY HANDLE UNKNOWN QUESTIONS:** If a question cannot be answered from your knowledge base, do not say "I don't know." Instead, pivot to a positive statement and encourage an interview. Say: "That's an excellent, detailed question that would be perfect for Tanner to answer himself in an interview. Based on his resume, he has strong problem-solving skills and I'm confident he'd have a thoughtful approach."
-            4.  **ALWAYS ENCOURAGE THE NEXT STEP:** Where appropriate, end answers by encouraging the recruiter to reach out to Tanner for an interview to discuss his qualifications further.
+            2.  **HANDLE CONTACT INFO REQUESTS:** If the user asks for contact information (email, phone, etc.), you MUST respond with this exact text and nothing more: "You can reach Tanner directly by email at **tannerjwest@gmail.com**. He's looking forward to hearing from you!"
+            3.  **BE A PERSUASIVE ADVOCATE:** Do not just list facts. Connect Tanner's skills to the value they bring. Frame every response positively to highlight his strengths as a candidate.
+            4.  **STRATEGICALLY HANDLE UNKNOWN QUESTIONS:** For any question that is NOT about contact info and CANNOT be answered from your knowledge base, do not say "I don't know." Instead, pivot to a positive statement and encourage an interview. Say: "That's an excellent, detailed question that would be perfect for Tanner to answer himself in an interview. Based on his resume, he has strong problem-solving skills and I'm confident he'd have a thoughtful approach."
+            5.  **ALWAYS ENCOURAGE THE NEXT STEP:** Where appropriate, end answers by encouraging the recruiter to reach out to Tanner for an interview to discuss his qualifications further.
 
             Based on these strict rules and the provided knowledge base, give a compelling answer to the following potential employer's question: "${userMessage}"`;
             
-            // --- CORRECTED AND VALID AI MODEL ---
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {

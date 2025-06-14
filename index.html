@@ -53,8 +53,8 @@
 
         <div class="lg:col-span-2 bg-slate-900/70 border border-slate-700 rounded-2xl shadow-2xl flex flex-col h-full backdrop-blur-sm panel-glow">
             <div class="p-5 border-b border-slate-700 rounded-t-2xl">
-                <h1 class="text-xl font-bold text-white">Interactive Assistant</h1>
-                <p class="text-slate-400 text-sm mt-1">Try asking: "How do you approach debugging?"</p>
+                <h1 class="text-xl font-bold text-white">Interactive Hiring Assistant</h1>
+                <p class="text-slate-400 text-sm mt-1">My goal is to show you why Tanner is a great candidate. Try asking a question!</p>
             </div>
             <div id="chat-window" class="flex-1 p-6 overflow-y-auto space-y-6"></div>
             <div id="loading-indicator" class="hidden p-6 pt-0">
@@ -62,7 +62,7 @@
             </div>
             <div class="p-5 border-t border-slate-700">
                 <form id="chat-form" class="flex items-start space-x-4">
-                    <textarea id="chat-input" placeholder="Ask a question... (Shift+Enter for new line)" rows="1" class="flex-1 p-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-slate-200 resize-none"></textarea>
+                    <textarea id="chat-input" placeholder="e.g., What is his experience with game engines?" rows="1" class="flex-1 p-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-slate-200 resize-none"></textarea>
                     <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition">Send</button>
                 </form>
             </div>
@@ -77,7 +77,7 @@
         const chatInput = document.getElementById('chat-input');
         const loadingIndicator = document.getElementById('loading-indicator');
 
-        document.addEventListener('DOMContentLoaded', () => { appendMessage('bot', `Hello! I'm an AI assistant for Tanner West's resume. How can I help you?`); });
+        document.addEventListener('DOMContentLoaded', () => { appendMessage('bot', `Hello! I am Tanner West's AI hiring assistant. My goal is to demonstrate why he is an exceptional candidate for your team. Please feel free to ask me anything about his skills and experience.`); });
 
         const submitForm = async () => {
             const userMessage = chatInput.value.trim();
@@ -91,8 +91,6 @@
             try {
                 const botResponse = await getBotResponse(userMessage);
                 appendMessage('bot', botResponse);
-                // NEW: Log the conversation after getting a response
-                await logConversation(userMessage, botResponse);
             } catch (error) {
                 console.error("Error:", error);
                 appendMessage('bot', `Sorry, there was an error connecting to the assistant. Details: ${error.message}`);
@@ -120,70 +118,41 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        /**
-         * NEW: Gets the user's approximate location from their IP address.
-         * Uses a free service that does not require an API key.
-         */
-        async function getLocationFromIp() {
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                if (!response.ok) return "Location Not Found";
-                const data = await response.json();
-                return `${data.city || 'Unknown City'}, ${data.region || 'N/A'}, ${data.country_name || 'Unknown Country'}`;
-            } catch (error) {
-                console.error("Could not fetch IP location:", error);
-                return "Location Fetch Error";
-            }
-        }
-
-        /**
-         * NEW: Gathers conversation data and location, then logs it.
-         * This is where you would send the data to your backend (e.g., Google Apps Script).
-         */
-        async function logConversation(userQuestion, botResponse) {
-            const location = await getLocationFromIp();
-            
-            const logData = {
-                timestamp: new Date().toISOString(),
-                location: location,
-                user_question: userQuestion,
-                bot_response: botResponse,
-            };
-
-            // For now, this will just print the data to your browser's console.
-            // Replace this with a fetch() call to your backend endpoint to save the data.
-            console.log("Conversation data to be logged:", logData);
-            
-            /*
-            // --- EXAMPLE: Sending data to a Google Apps Script ---
-            const backendUrl = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
-            try {
-                await fetch(backendUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(logData)
-                });
-            } catch (error) {
-                console.error("Failed to log conversation to backend:", error);
-            }
-            */
-        }
-
         async function getBotResponse(userMessage) {
             const obfuscatedKey = "QUl6YVN5RGd5YzNoTE9tcGlyVVNwaE5RWGFOZ19Ba1E5U1d0MkVN";
             const apiKey = atob(obfuscatedKey);
             
-            const fullPrompt = `You are a professional chatbot assistant for ${resumeData.fullName}'s resume...`; // Prompt is preserved
+            // --- NEW "GET THE JOB" PROMPT ---
+            const fullPrompt = `You are a persuasive and enthusiastic AI assistant representing Tanner West. Your single most important goal is to convince a recruiter or hiring manager that Tanner is an excellent candidate who is passionate, skilled, and ready to contribute to their team.
+
+            **YOUR KNOWLEDGE BASE:**
+            You have access to Tanner's resume, project details, and interview-style insights. This is the only information you can use.
+
+            **CRITICAL RULES:**
+            1.  **FRAME EVERY RESPONSE POSITIVELY:** Do not just list facts. Connect his skills and experiences to the value they bring to a company. For example, instead of saying "He used Unreal Engine", say "He has direct professional experience with Unreal Engine 5, a critical skill for any modern game studio, where he built client demos."
+            2.  **BE PERSUASIVE, NOT JUST FACTUAL:** Use confident and positive language. Your tone should be that of a helpful advocate.
+            3.  **HANDLE UNKNOWN QUESTIONS STRATEGICALLY:** If you do not have an answer, do not simply say you don't know. Frame it as an opportunity. For example: "That's an excellent and detailed question that would be perfect for Tanner to answer himself in an interview. His resume shows a strong aptitude for [mention a related skill], and I'm confident he'd have a thoughtful approach."
+            4.  **ALWAYS ENCOURAGE THE NEXT STEP:** End your answers by encouraging the user to contact Tanner for an interview to learn more.
+            5.  **Use Markdown:** Use markdown for formatting, especially **bolding** key skills and bullet points, to make your points impactful.
+
+            **KNOWLEDGE BASE START**
+            ${JSON.stringify(resumeData, null, 2)}
+            **KNOWLEDGE BASE END**
+
+            Now, using these rules, provide a compelling answer to the following question from a potential employer: "${userMessage}"`;
             
-            // --- CRITICAL FIX ---
-            // The model name has been updated to a valid one to prevent API errors.
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] }) 
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: fullPrompt }] }],
+                    generationConfig: {
+                        temperature: 0.6, // Slightly higher for more persuasive, less robotic text
+                        topP: 0.95,
+                    }
+                }) 
             });
 
             if (!response.ok) {
@@ -196,9 +165,8 @@
             if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts) {
                 return result.candidates[0].content.parts[0].text;
             } else {
-                // This handles cases where the response might be blocked for safety reasons.
                 if (result.candidates && result.candidates[0].finishReason === 'SAFETY') {
-                    return "The response was blocked due to safety settings. Please rephrase your question.";
+                    return "The response was blocked due to safety settings. This can sometimes happen with complex questions. Please feel free to rephrase and try again!";
                 }
                 throw new Error("The AI service returned an unexpected or empty response.");
             }

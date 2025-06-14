@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tanner West - AI-Powered Interactive Resume</title>
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -48,7 +50,6 @@
         
         #chat-input:disabled, #submit-btn:disabled { cursor: not-allowed; opacity: 0.6; }
 
-        /* Privacy Modal Styles */
         .modal-overlay {
             background-color: rgba(10, 20, 35, 0.7);
             backdrop-filter: blur(8px);
@@ -139,17 +140,16 @@
     </div>
     
     <script>
-    // The main application logic, encapsulated to avoid polluting the global namespace.
     const App = {
         config: {
             obfuscatedApiKey: "QUl6YVN5RGd5YzNoTE9tcGlyVVNwaE5RWGFOZ19Ba1E5U1d0MkVN",
-            googleApiUrl: "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+            // *** CRITICAL FIX APPLIED HERE ***
+            // The model name has been updated to a current, valid model to resolve the 404 API error.
+            googleApiUrl: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent",
             formSubmissionUrl: "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE",
         },
 
-        // This is the AI's complete knowledge base.
-        resumeData: { /* --- Resume data from previous steps would be here --- */ },
-
+        resumeData: {},
         elements: {},
         
         init() {
@@ -165,9 +165,7 @@
                 closeModalBtn: document.getElementById('close-modal-btn')
             };
 
-            // Deep copy resume data to prevent modification
-            this.resumeData = JSON.parse(JSON.stringify(this.getResumeData()));
-
+            this.resumeData = this.getResumeData();
             this.setupEventListeners();
             this.displayInitialMessage();
             this.populateExampleQuestions();
@@ -178,7 +176,6 @@
             this.elements.chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.handleFormSubmit(); } });
             this.elements.chatInput.addEventListener('input', () => { this.elements.chatInput.style.height = 'auto'; this.elements.chatInput.style.height = (this.elements.chatInput.scrollHeight) + 'px'; });
             
-            // Privacy Modal Listeners
             this.elements.privacyLink.addEventListener('click', (e) => { e.preventDefault(); this.toggleModal(true); });
             this.elements.closeModalBtn.addEventListener('click', () => this.toggleModal(false));
             this.elements.privacyModal.addEventListener('click', (e) => { if (e.target === this.elements.privacyModal) { this.toggleModal(false); } });
@@ -287,6 +284,7 @@
         },
 
         getResumeData() {
+            // This object is the AI's entire knowledge base.
             return {
                 fullName: "Tanner West", jobTitle: "Game Developer & Sound Designer", location: "Alpharetta, GA (Greater Atlanta Area)", summary: "Active professional with over 6 years of hands-on experience in sound design and object-oriented programming seeking to develop skills and knowledge while actively contributing to projects in preparation for a career in these dynamic fields.", experience: [{ title: "Developer", company: "Streaming Global", period: "May 2024 - May 2025", details: ["Built client and prospect demo projects using Unreal Engine 5.", "Created internal tools using C#, Visual Studio, and WPF."] }, { title: "Sound Designer (Contractor)", company: "Breakthrough Games (for the game Havoc)", period: "July 2023 - May 2024", details: ["Created and refined sound effects for game weapons, items, and more.", "Composed the original soundtrack."] }, { title: "Sound Designer", company: "Surreal Entertainment", period: "May 2023 - August 2023", details: ["Designed and produced sounds for Sephora, Louis Vuitton, and Global Payments augmented reality experiences.", "Communicated with clients to understand brand identity."] }], education: [{ institution: "Innovation Academy High School (STEAM Magnet)", period: "Graduated Class of 2025", details: "Graduated CUM LAUDE with an 89.5/100 GPA. Recipient of the 2022 'Analytical Thinking' Award. Member of the Technology Student Association (TSA) and eSports Team." }, { institution: "Dekalb County Office of Youth Services", program: "Sights N’ Sounds Program", details: "Participated in a three-month program visiting respected production studios in the Greater Atlanta area." }], skills: { programming: ["C#", "Python", "Java", "Object-Oriented Programming (OOP)"], gameEngines: ["Unreal Engine", "Unity Engine", "Godot"], developmentTools: ["Visual Studio", "WPF", "XAML", "Blender", "Git", "Jira", "Trello", "Slack", "Confluence"], audio: ["Sound Design", "Music Production", "Ableton Live", "Synthesizers", "Wwise", "FMOD"], networking: ["FishNetworking", "Unity Online Services"] }, projects: [{ name: "Depths", year: 2025, description: "A horror game created in less than 3 days for the Ludum Dare 2025 game jam. Handled all sound design, level design, and some programming.", link: "https://alexrak2.itch.io/depths" }, { name: "Flop / HGS", year: 2024, description: "Solo indie game project (HGS was the jam version, Flop is the ongoing project) developed using Unity, Blender, and Ableton. Incorporates networking with FishNetworking and Unity Online Services.", link: "https://twest-games.itch.io/hgs" }], interviewInsights: { motivation: { origin: "Became addicted to creating games after downloading Scratch at a young age. This passion expanded into sound design and composition, complementing a strong experience in programming.", passion: "Grew up playing and watching eSports (Fortnite, Rocket League, Call of Duty), which sparked a deep interest in the field.", successDefinition: "A successful project is a useful one that effectively accomplishes its design goals." }, technicalProcess: { newProjectApproach: "Starts with an ideation phase, then sets up the project structure and necessary tools.", engineChoice: "Has professional experience with Unity and Unreal, and is familiar with Godot.", debugging: "Enjoys the process of debugging. If a problem is too difficult, he will step back to think about the issue from a different perspective before returning to solve it.", codeStandards: "Follows coding standards and constantly checks his own code for readability to ensure it is maintainable for a team." }, projectDeepDive: { challenge: "On 'Lumen Keys', the biggest challenge was creating procedural map generation from a MIDI file input in just a couple of hours.", proudestMoment: "Is proud of the 'spacey and dark' sound design for the horror game 'Depths', and the advanced scoreboard system for 'Lumen Keys' which was built very quickly.", }, teamwork: { disagreements: "Handles creative differences by making sure to hear out all sides of a discussion and playing devil's advocate to find the best solution.", pmTools: "Has extensive project management experience using Trello, Jira, and Confluence across work, school, and hobby projects.", feedback: "Prefers feedback that is honest and direct, but delivered in a constructive way." }, audioPhilosophy: { philosophy: "Believes that the primary goal of sound design in games is to enhance player immersion. The better the immersion, the more successful the sound design."} }
             };

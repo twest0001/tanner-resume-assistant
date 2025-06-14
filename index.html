@@ -1,38 +1,406 @@
-// This function would be called when the user submits the form.
-async function handleSubmit() {
-    // 1. Get the user's conversation data from your form fields.
-    const userQuestion = document.getElementById('user-question').value;
-    const botResponse = document.getElementById('bot-response').value;
-    const conversationLog = `---User Question---\n${userQuestion}\n\n---Bot Response---\n${botResponse}`;
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tanner West - AI-Powered Interactive Resume</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 
-    let locationData = 'Location Not Found';
-
-    try {
-        // 2. Fetch location data from a free geolocation API.
-        const response = await fetch('http://ip-api.com/json');
-        const data = await response.json();
-
-        // 3. Format the location data.
-        if (data.status === 'success') {
-            locationData = `${data.city}, ${data.regionName}, ${data.country}`;
+    <style>
+        :root {
+            --bg-dark: #020617; /* slate-950 */
+            --panel-bg: #0f172a; /* slate-900 */
+            --border-color: #334155; /* slate-700 */
+            --accent-blue: #2563eb;
+            --accent-blue-hover: #1d4ed8;
+            --text-primary: #e2e8f0; /* slate-200 */
+            --text-secondary: #94a3b8; /* slate-400 */
         }
-    } catch (error) {
-        console.error('Error fetching location:', error);
-        // If the API call fails, it will just use the default value.
-    }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at top left, #1e293b, var(--bg-dark) 40%);
+            color: var(--text-primary);
+        }
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        #chat-window::-webkit-scrollbar { width: 6px; }
+        #chat-window::-webkit-scrollbar-track { background: transparent; }
+        #chat-window::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        #chat-window::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        .message-bubble-user { background-color: var(--accent-blue); }
+        .message-bubble-bot { background-color: #334155; }
+        
+        .prose ul { list-style-type: disc; padding-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        .prose a { color: #60a5fa; text-decoration: underline; transition: color 0.2s; }
+        .prose a:hover { color: #93c5fd; }
+        .prose strong, .prose b { color: #f8fafc; }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 12px -4px var(--accent-blue); }
+            50% { box-shadow: 0 0 18px -2px var(--accent-blue); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .panel-glow { animation: glow 5s ease-in-out infinite; }
+        .message-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        
+        #chat-input:disabled, #submit-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    // 4. Combine all data and send it to your backend/form handler.
-    const formData = {
-        timestamp: new Date().toISOString(),
-        conversation: conversationLog,
-        location: locationData
+    <main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8 h-[95vh]">
+        
+        <aside class="lg:col-span-2 bg-slate-900/80 border border-slate-700 rounded-2xl p-8 flex flex-col shadow-2xl backdrop-blur-sm panel-glow">
+            <div>
+                <img class="w-32 h-32 rounded-full mx-auto ring-4 ring-slate-700 object-cover" src="https://placehold.co/256x256/0f172a/e2e8f0?text=TW" alt="Tanner West">
+                <h1 class="font-display text-center text-3xl font-bold mt-6 text-white">Tanner West</h1>
+                <h2 class="text-center text-lg text-blue-400 font-medium">Game Developer & Sound Designer</h2>
+                <p class="text-slate-400 mt-4 text-center text-sm">An active professional with hands-on experience in sound design and object-oriented programming, now seeking to contribute to innovative projects.</p>
+            </div>
+            
+            <div class="mt-8 pt-8 border-t border-slate-700 space-y-6">
+                <div>
+                    <h3 class="font-display text-white font-semibold mb-3">Quick Links</h3>
+                    <div class="space-y-3">
+                        <a href="https://docs.google.com/document/d/1-YDX3SCVV28yqYZE9dz4kZC7v-9CdMJsTbyCrj8BSYo/edit?usp=sharing" target="_blank" class="flex items-center space-x-3 text-slate-300 hover:text-blue-400 transition-colors duration-200 group">
+                            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-blue-400 transition-colors" fill="currentColor" viewBox="0 0 256 256"><path d="M216,40H88a16,16,0,0,0-16,16V88H40a16,16,0,0,0-16,16v96a16,16,0,0,0,16,16H168a16,16,0,0,0,16-16V184h32a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM160,192H48V112H160Zm48-48H184V112a16,16,0,0,0-16-16H80V64H208Z"></path></svg>
+                            <span>View Full Resume</span>
+                        </a>
+                        <a href="https://twest-games.itch.io/" target="_blank" class="flex items-center space-x-3 text-slate-300 hover:text-blue-400 transition-colors duration-200 group">
+                            <svg class="w-5 h-5 flex-shrink-0 text-slate-500 group-hover:text-blue-400 transition-colors" fill="currentColor" viewBox="0 0 256 256"><path d="M228.8,32H27.2A11.2,11.2,0,0,0,16,43.2V212.8A11.2,11.2,0,0,0,27.2,224H228.8A11.2,11.2,0,0,0,240,212.8V43.2A11.2,11.2,0,0,0,228.8,32ZM104,112.55,76,144H56V96H70.67L97.2,125.88V96h14.4V144H99.11ZM168,144H128V128h34.67V112H128V96h40a16,16,0,0,1,16,16v16A16,16,0,0,1,168,144Zm40-32a8,8,0,1,1,8,8A8,8,0,0,1,208,112Z"></path></svg>
+                            <span>Explore itch.io Profile</span>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-display text-white font-semibold mb-3">Example Questions</h3>
+                    <div id="example-questions" class="space-y-2 text-sm">
+                        </div>
+                </div>
+            </div>
+
+            <div class="mt-auto pt-6 text-center text-xs text-slate-500">
+                <p>This is an AI-powered interactive resume. The assistant's knowledge is based on my provided professional documents.</p>
+            </div>
+        </aside>
+
+        <div class="lg:col-span-3 bg-slate-900/80 border border-slate-700 rounded-2xl shadow-2xl flex flex-col h-full backdrop-blur-sm">
+            <div class="p-5 border-b border-slate-700 rounded-t-2xl flex-shrink-0">
+                <h1 class="font-display text-xl font-bold text-white">Interactive Resume Assistant</h1>
+                <p class="text-slate-400 text-sm mt-1">Ask me anything about Tanner's skills, projects, or experience.</p>
+            </div>
+            
+            <div id="chat-window" class="flex-1 p-6 overflow-y-auto space-y-6">
+                </div>
+            
+            <div id="loading-indicator" class="hidden p-6 pt-0">
+                 <div class="flex items-center space-x-3">
+                     <div class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
+                     <div class="w-2 h-2 rounded-full bg-blue-400 animate-pulse [animation-delay:0.2s]"></div>
+                     <div class="w-2 h-2 rounded-full bg-blue-400 animate-pulse [animation-delay:0.4s]"></div>
+                     <p class="text-slate-400 text-sm">Assistant is thinking...</p>
+                 </div>
+            </div>
+            
+            <div class="p-5 border-t border-slate-700 flex-shrink-0">
+                <form id="chat-form" class="flex items-start space-x-4">
+                    <textarea id="chat-input" placeholder="Ask a question... (Shift+Enter for new line)" rows="1" class="flex-1 p-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200 text-slate-200 placeholder-slate-500 resize-none overflow-y-hidden"></textarea>
+                    <button id="submit-btn" type="submit" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all duration-200 shadow-lg shadow-blue-600/20 self-end">Send</button>
+                </form>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+    const App = {
+        // --- CONFIGURATION & DATA ---
+        config: {
+            // IMPORTANT: This is client-side key obfuscation. For production, it's highly recommended
+            // to move the API call to a secure serverless function where the key is an environment variable.
+            obfuscatedApiKey: "QUl6YVN5RGd5YzNoTE9tcGlyVVNwaE5RWGFOZ19Ba1E5U1d0MkVN",
+            googleApiUrl: "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+            formSubmissionUrl: "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE", // Replace with your backend endpoint
+        },
+
+        // This is the AI's complete knowledge base, synthesized from the resume and other documents.
+        resumeData: {
+            fullName: "Tanner West",
+            jobTitle: "Game Developer & Sound Designer",
+            location: "Alpharetta, GA (Greater Atlanta Area)",
+            summary: "Active professional with over 6 years of hands-on experience in sound design and object-oriented programming seeking to develop skills and knowledge while actively contributing to projects in preparation for a career in these dynamic fields.",
+            experience: [
+                { title: "Developer", company: "Streaming Global", period: "May 2024 - May 2025", details: ["Built client and prospect demo projects using Unreal Engine 5.", "Created internal tools using C#, Visual Studio, and WPF."] },
+                { title: "Sound Designer (Contractor)", company: "Breakthrough Games (for the game Havoc)", period: "July 2023 - May 2024", details: ["Created and refined sound effects for game weapons, items, and more.", "Composed the original soundtrack."] },
+                { title: "Sound Designer", company: "Surreal Entertainment", period: "May 2023 - August 2023", details: ["Designed and produced sounds for Sephora, Louis Vuitton, and Global Payments augmented reality experiences.", "Communicated with clients to understand brand identity."] }
+            ],
+            education: [
+                { institution: "Innovation Academy High School (STEAM Magnet)", period: "Graduated Class of 2025", details: "Graduated CUM LAUDE with an 89.5/100 GPA. Recipient of the 2022 'Analytical Thinking' Award. Member of the Technology Student Association (TSA) and eSports Team." },
+                { institution: "Dekalb County Office of Youth Services", program: "Sights N’ Sounds Program", details: "Participated in a three-month program visiting respected production studios in the Greater Atlanta area." }
+            ],
+            skills: {
+                programming: ["C#", "Python", "Java", "Object-Oriented Programming (OOP)"],
+                gameEngines: ["Unreal Engine", "Unity Engine", "Godot"],
+                developmentTools: ["Visual Studio", "WPF", "XAML", "Blender", "Git", "Jira", "Trello", "Slack", "Confluence"],
+                audio: ["Sound Design", "Music Production", "Ableton Live", "Synthesizers", "Wwise", "FMOD"],
+                networking: ["FishNetworking", "Unity Online Services"]
+            },
+            projects: [
+                { name: "Depths", year: 2025, description: "A horror game created in less than 3 days for the Ludum Dare 2025 game jam. Handled all sound design, level design, and some programming.", link: "https://alexrak2.itch.io/depths" },
+                { name: "Flop / HGS", year: 2024, description: "Solo indie game project (HGS was the jam version, Flop is the ongoing project) developed using Unity, Blender, and Ableton. Incorporates networking with FishNetworking and Unity Online Services.", link: "https://twest-games.itch.io/hgs" },
+                { name: "Audio-Based Game (Game4Video)", year: 2024, description: "A high school project with two other students. Responsible for all development except music, SFX, and UI. Learned the Unity decal system and improved collaboration skills.", link: "N/A" },
+                { name: "Lumen Keys", year: "Unknown", description: "A Stepmania-like speedrunning game created in under 2 days with a team. Worked on MIDI-based procedural level generation, the scoreboard, and other systems.", link: "https://dubscr.itch.io/lumen-keys" },
+                { name: "Unidentified Flying Octaves", year: "Unknown", description: "Created for the 2-day Atlanta Game Jam with 2 artists. Handled all development besides graphics.", link: "https://twest-games.itch.io/unidentified-flying-octaves"},
+                { name: "Roll N' Run", year: 2022, description: "A GMTK 2022 Game Jam entry in Unity. Created the movement, sounds, and 4 levels.", link: "https://alexrak2.itch.io/roll-n-run" },
+                { name: "Airblast", year: 2021, description: "Served as the main programmer and composer for this Godot project made for a TSA state competition.", link: "https://airblast.itch.io/airblast" }
+            ],
+            interviewInsights: {
+                motivation: {
+                    origin: "Became addicted to creating games after downloading Scratch at a young age. This passion expanded into sound design and composition, complementing a strong experience in programming.",
+                    passion: "Grew up playing and watching eSports (Fortnite, Rocket League, Call of Duty), which sparked a deep interest in the field.",
+                    successDefinition: "A successful project is a useful one that effectively accomplishes its design goals."
+                },
+                technicalProcess: {
+                    newProjectApproach: "Starts with an ideation phase, then sets up the project structure and necessary tools.",
+                    engineChoice: "Has professional experience with Unity and Unreal, and is familiar with Godot.",
+                    debugging: "Enjoys the process of debugging. If a problem is too difficult, he will step back to think about the issue from a different perspective before returning to solve it.",
+                    codeStandards: "Follows coding standards and constantly checks his own code for readability to ensure it is maintainable for a team."
+                },
+                projectDeepDive: {
+                    challenge: "On 'Lumen Keys', the biggest challenge was creating procedural map generation from a MIDI file input in just a couple of hours. This was accomplished by using an external MIDI library and maintaining intense focus.",
+                    whatIWouldDoDifferently: "Would dedicate more time to the ideation phase of a project before diving into development.",
+                    proudestMoment: "Is proud of the 'spacey and dark' sound design for the horror game 'Depths', and the advanced scoreboard system for 'Lumen Keys' which was built very quickly.",
+                    constraints: "Understands the importance of managing project scope under tight deadlines, like in a game jam, to avoid feature creep and personal burnout."
+                },
+                teamwork: {
+                    soloVsTeam: "Notes that the biggest difference in working solo (like on 'Flop'/'HGS') is the reduced need for constant communication and formal project management compared to team projects.",
+                    disagreements: "Handles creative differences by making sure to hear out all sides of a discussion and playing devil's advocate to find the best solution.",
+                    pmTools: "Has extensive project management experience using Trello, Jira, and Confluence across work, school, and hobby projects.",
+                    feedback: "Prefers feedback that is honest and direct, but delivered in a constructive way."
+                },
+                audioPhilosophy: {
+                    philosophy: "Believes that the primary goal of sound design in games is to enhance player immersion. The better the immersion, the more successful the sound design.",
+                    sfxWorkflow: "A typical sound effect workflow is: design in Ableton, implement and mix with middleware like Wwise or FMOD, and finally integrate into the game engine (Unity/Unreal).",
+                    compositionWorkflow: "When composing, he creates multiple 'prototypes' or track variations and then selects the best ones to develop further."
+                }
+            }
+        },
+
+        elements: {},
+        
+        // --- INITIALIZATION ---
+        init() {
+            this.elements = {
+                chatWindow: document.getElementById('chat-window'),
+                chatForm: document.getElementById('chat-form'),
+                chatInput: document.getElementById('chat-input'),
+                submitBtn: document.getElementById('submit-btn'),
+                loadingIndicator: document.getElementById('loading-indicator'),
+                exampleQuestionsContainer: document.getElementById('example-questions')
+            };
+
+            this.setupEventListeners();
+            this.displayInitialMessage();
+            this.populateExampleQuestions();
+        },
+        
+        // --- UI & EVENT HANDLING ---
+        setupEventListeners() {
+            this.elements.chatForm.addEventListener('submit', this.handleFormSubmit.bind(this));
+            this.elements.chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.handleFormSubmit();
+                }
+            });
+            this.elements.chatInput.addEventListener('input', () => {
+                this.elements.chatInput.style.height = 'auto';
+                this.elements.chatInput.style.height = (this.elements.chatInput.scrollHeight) + 'px';
+            });
+            this.elements.exampleQuestionsContainer.addEventListener('click', (e) => {
+                if (e.target.tagName === 'A') {
+                    e.preventDefault();
+                    this.elements.chatInput.value = e.target.textContent;
+                    this.elements.chatInput.dispatchEvent(new Event('input'));
+                    this.handleFormSubmit();
+                }
+            });
+        },
+        
+        displayInitialMessage() {
+            this.appendMessage('bot', `Hello! I'm an AI assistant for ${this.resumeData.fullName}'s interactive resume. You can ask me about his skills, experience, or his approach to development. How can I help you?`);
+        },
+
+        populateExampleQuestions() {
+            const examples = [
+                "What's his most challenging project?",
+                "How does he approach debugging?",
+                "Tell me about his experience with Unreal Engine.",
+                "What's his philosophy on sound design in games?"
+            ];
+            this.elements.exampleQuestionsContainer.innerHTML = examples.map(q => 
+                `<a href="#" class="block text-slate-400 hover:text-blue-400 transition-colors duration-200">&#8227; ${q}</a>`
+            ).join('');
+        },
+        
+        appendMessage(sender, message) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex items-start gap-3 message-fade-in ${sender === 'user' ? 'justify-end' : ''}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-sm text-white';
+            avatar.textContent = sender === 'user' ? 'YOU' : 'AI';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = `prose prose-invert max-w-none p-3.5 rounded-lg shadow-md text-white ${sender === 'user' ? 'message-bubble-user rounded-br-none' : 'message-bubble-bot rounded-bl-none'}`;
+            messageContent.innerHTML = marked.parse(message);
+
+            if (sender === 'user') {
+                avatar.classList.add('bg-blue-700');
+                messageWrapper.append(messageContent, avatar);
+            } else {
+                avatar.classList.add('bg-slate-700');
+                messageWrapper.append(avatar, messageContent);
+            }
+            
+            this.elements.chatWindow.appendChild(messageWrapper);
+            this.elements.chatWindow.scrollTop = this.elements.chatWindow.scrollHeight;
+        },
+
+        toggleLoading(isLoading) {
+            this.elements.loadingIndicator.classList.toggle('hidden', !isLoading);
+            this.elements.chatInput.disabled = isLoading;
+            this.elements.submitBtn.disabled = isLoading;
+        },
+
+        // --- CORE LOGIC ---
+        async handleFormSubmit() {
+            const userMessage = this.elements.chatInput.value.trim();
+            if (!userMessage) return;
+            
+            this.appendMessage('user', userMessage);
+            this.elements.chatInput.value = '';
+            this.elements.chatInput.dispatchEvent(new Event('input')); // Recalculate height
+            this.toggleLoading(true);
+
+            try {
+                const botResponse = await this.getBotResponse(userMessage);
+                this.appendMessage('bot', botResponse);
+                this.logConversation(userMessage, botResponse);
+            } catch (error) {
+                console.error("Error getting bot response:", error);
+                this.appendMessage('bot', `Sorry, there was an error connecting to the assistant. Please check the console for details.`);
+            } finally {
+                this.toggleLoading(false);
+                this.elements.chatInput.focus();
+            }
+        },
+
+        async getBotResponse(userMessage) {
+            const fullPrompt = `You are a professional, friendly, and helpful chatbot assistant for ${this.resumeData.fullName}'s resume. Your primary directive is to be truthful and stick strictly to the information provided in the knowledge base.
+
+            **YOUR KNOWLEDGE BASE:**
+            You have access to a comprehensive JSON object containing standard resume data (experience, skills, projects) and deeper interview-style insights about his personality, work process, technical philosophies, and motivations. His current location is the Greater Atlanta Area, GA.
+
+            **CRITICAL RULES:**
+            1.  **Strictly Adhere to Knowledge Base:** Do not invent, speculate, or use any information outside of the provided JSON object.
+            2.  **Fallback Response:** If a user's question CANNOT be answered from the knowledge base, you MUST respond with this exact phrase and nothing more: "I'm sorry, I don't have specific information on that topic. For more details, I would recommend contacting Tanner directly."
+            3.  **Be Conversational:** Answer in a natural, helpful tone.
+            4.  **Use Markdown:** Use markdown for formatting, especially for lists (**bolding**, bullet points `*`).
+            5.  **Provide Links:** If a project has a web link, include it as a clickable markdown link in your response.
+
+            **KNOWLEDGE BASE START**
+            ${JSON.stringify(this.resumeData, null, 2)}
+            **KNOWLEDGE BASE END**
+
+            Now, please answer the following question from a potential employer or recruiter: "${userMessage}"`;
+            
+            const response = await fetch(this.config.googleApiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: fullPrompt }] }],
+                    generationConfig: {
+                        temperature: 0.5,
+                        topK: 40,
+                        topP: 0.9,
+                        maxOutputTokens: 512,
+                    },
+                })
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`API Error: ${response.status}. ${errorBody}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts) {
+                return result.candidates[0].content.parts[0].text;
+            }
+            
+            // Handle safety blocks or empty responses
+            if (result.candidates && result.candidates[0].finishReason === 'SAFETY') {
+                 return "The response was blocked for safety reasons. Please try rephrasing your question.";
+            }
+
+            throw new Error("The AI service returned an unexpected or empty response.");
+        },
+        
+        // --- DATA LOGGING with IP Geolocation ---
+        async logConversation(userQuestion, botResponse) {
+            if (!this.config.formSubmissionUrl.includes('YOUR_GOOGLE_APPS_SCRIPT_URL_HERE')) {
+                const location = await this.getLocationFromIp();
+                const logData = {
+                    timestamp: new Date().toISOString(),
+                    location: location,
+                    user_question: userQuestion,
+                    bot_response: botResponse,
+                };
+                
+                try {
+                    await fetch(this.config.formSubmissionUrl, {
+                        method: 'POST',
+                        mode: 'no-cors', // Important for Google Apps Script simple POST
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(logData)
+                    });
+                } catch (error) {
+                    console.error("Failed to log conversation:", error);
+                }
+            } else {
+                console.warn("Conversation logging is disabled. Please set `formSubmissionUrl` in the config.");
+            }
+        },
+
+        async getLocationFromIp() {
+            try {
+                // Using a free, no-key-required service.
+                const response = await fetch('https://ipapi.co/json/');
+                if (!response.ok) throw new Error('Location API failed.');
+                const data = await response.json();
+                return `${data.city || 'Unknown City'}, ${data.region_code || 'N/A'}, ${data.country_name || 'Unknown Country'}`;
+            } catch (error) {
+                console.error("Could not fetch IP location:", error);
+                return "Location Not Found";
+            }
+        }
     };
 
-    // This is where you would send the 'formData' object to your
-    // serverless function or form-handling endpoint.
-    console.log('Submitting the following data:', formData);
-    // await fetch('YOUR_FORM_ENDPOINT', {
-    //     method: 'POST',
-    //     body: JSON.stringify(formData)
-    // });
-}
+    document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+</body>
+</html>

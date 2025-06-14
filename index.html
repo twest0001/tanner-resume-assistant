@@ -41,10 +41,10 @@
         
         <div class="lg:col-span-1 bg-slate-900/70 border border-slate-700 rounded-2xl p-8 flex flex-col shadow-2xl backdrop-blur-sm panel-glow">
             <div>
-                <img class="w-32 h-32 rounded-full mx-auto ring-4 ring-slate-700" src="https://placehold.co/256x256/1e293b/e2e8f0?text=TW" alt="Tanner West">
+                <img class="w-32 h-32 rounded-full mx-auto ring-4 ring-slate-700" src="tanner.png" alt="Tanner West">
                 <h1 class="text-center text-3xl font-bold mt-6 text-white">Tanner West</h1>
                 <h2 class="text-center text-lg text-blue-400 font-medium">Game Developer & Sound Designer</h2>
-                <p class="text-slate-400 mt-4 text-center text-sm">Active professional with over 6 years of hands-on experience in sound design and object-oriented programming.</p>
+                <p class="text-slate-400 mt-4 text-center text-sm">Active professional with over 6 years of hands-on experience in sound design and object-oriented programming. </p>
             </div>
             <div class="mt-8 pt-8 border-t border-slate-700">
                 <h3 class="text-white font-semibold">Resume & Links</h3>
@@ -147,7 +147,10 @@
         const chatInput = document.getElementById('chat-input');
         const loadingIndicator = document.getElementById('loading-indicator');
 
-        document.addEventListener('DOMContentLoaded', () => { appendMessage('bot', `Hello! I'm an AI assistant for ${resumeData.fullName}'s resume. How can I help you?`); });
+        document.addEventListener('DOMContentLoaded', () => { 
+            const initialMessage = `Hello! I'm Tanner West's interactive resume assistant. I'm here to help you quickly understand his skills, experience, and how he can be a great fit for your team. What would you like to know first? You could ask about his experience with **Unreal Engine**, his approach to **sound design**, or his **proudest project**.`;
+            appendMessage('bot', initialMessage);
+        });
 
         const submitForm = async () => {
             const userMessage = chatInput.value.trim();
@@ -160,6 +163,7 @@
             try {
                 const botResponse = await getBotResponse(userMessage);
                 appendMessage('bot', botResponse);
+                saveConversationSummary(userMessage, botResponse);
             } catch (error) {
                 console.error("Error getting bot response:", error);
                 appendMessage('bot', `Sorry, there was an error connecting to the assistant. Details: ${error.message}`);
@@ -190,16 +194,15 @@
 
         async function getBotResponse(userMessage) {
             const obfuscatedKey = "QUl6YVN5RGd5YzNoTE9tcGlyVVNwaE5RWGFOZ19Ba1E5U1d0MkVN";
-
             const apiKey = atob(obfuscatedKey);
             
-            const fullPrompt = `You are a professional, friendly chatbot assistant for ${resumeData.fullName}'s resume. Your primary directive is to be truthful and stick strictly to the information provided.
+            const fullPrompt = \`You are a professional, friendly chatbot assistant for \${resumeData.fullName}'s resume. Your primary directive is to be truthful and stick strictly to the information provided.
             
             **YOUR KNOWLEDGE BASE:**
             You have access to three main sources of information:
             1.  **Standard Resume Data:** Basic facts like experience, skills, and project lists.
             2.  **Interview Insights:** Deeper information about his personality, work process, technical philosophies, and motivations.
-	    3.  **Basic location:** Tanner is currently based nearby Atlanta, GA.
+	        3.  **Basic location:** Tanner is currently based nearby Atlanta, GA.
 
             **CRITICAL RULES:**
             1.  **FALLBACK RESPONSE:** If a user's question cannot be answered from the KNOWLEDGE BASE OR BASIC POSITIVE SPECULATION, you MUST respond with this exact phrase and nothing more: "I'm sorry, I don't have specific information on that topic. For more details, I would recommend contacting Tanner directly."
@@ -207,12 +210,12 @@
             3.  **Provide Links:** If a project has a link, include it in the response.
 
             **KNOWLEDGE BASE START**
-            ${JSON.stringify(resumeData, null, 2)}
+            \${JSON.stringify(resumeData, null, 2)}
             **KNOWLEDGE BASE END**
 
-            Now, please answer the following question from a potential employer: "${userMessage}"`;
+            Now, please answer the following question from a potential employer: "\${userMessage}"\`;
             
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const apiUrl = \`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=\${apiKey}\`;
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -222,15 +225,44 @@
 
             if (!response.ok) {
                 const errorBody = await response.text();
-                throw new Error(`The AI service returned an error. Please check if the API key is valid. Status: ${response.status}`);
+                throw new Error(\`The AI service returned an error. Please check if the API key is valid. Status: \${response.status}\`);
             }
             
             const result = await response.json();
             
             if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts) {
                 return result.candidates[0].content.parts[0].text;
+            } else if (result.promptFeedback && result.promptFeedback.blockReason) {
+                console.error("AI response blocked:", result.promptFeedback);
+                return \`My response was blocked for the following reason: \${result.promptFeedback.blockReason}. This can sometimes happen with safety filters. Please try rephrasing your question.\`;
             } else {
+                console.error("Unexpected AI response format:", result);
                 throw new Error("The AI service returned an unexpected or empty response.");
+            }
+        }
+
+        // --- Function to save conversation to Google Forms ---
+        async function saveConversationSummary(userMessage, botResponse) {
+            // This URL is now correctly configured based on the link you provided.
+            const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSelKdQryTwTqxBi2mdD8MTFlaumzbU5wLOyUdlxAmHKyXHmEQ/formResponse";
+
+            // This is the unique ID for your form's question field.
+            const FORM_ENTRY_ID = "entry.381895239";
+
+            const conversationLog = \`Timestamp: \${new Date().toISOString()}\\n\\n---User Question---\\n\${userMessage}\\n\\n---Bot Response---\\n\${botResponse}\`;
+
+            const formData = new FormData();
+            formData.append(FORM_ENTRY_ID, conversationLog);
+
+            try {
+                await fetch(GOOGLE_FORM_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors' // 'no-cors' is important for submitting to Google Forms from a different origin
+                });
+                console.log("Conversation summary saved successfully.");
+            } catch (error) {
+                console.error("Error saving conversation summary:", error);
             }
         }
     </script>

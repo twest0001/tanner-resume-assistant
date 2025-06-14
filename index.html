@@ -309,6 +309,12 @@
         },
 
         async getBotResponse(userMessage) {
+            // This is the corrected function.
+            // It now properly decodes the key and appends it to the URL.
+
+            const apiKey = atob(this.config.obfuscatedApiKey);
+            const apiUrlWithKey = `${this.config.googleApiUrl}?key=${apiKey}`;
+
             const fullPrompt = `You are a professional, friendly, and helpful chatbot assistant for ${this.resumeData.fullName}'s resume. Your primary directive is to be truthful and stick strictly to the information provided in the knowledge base.
 
             **YOUR KNOWLEDGE BASE:**
@@ -318,7 +324,7 @@
             1.  **Strictly Adhere to Knowledge Base:** Do not invent, speculate, or use any information outside of the provided JSON object.
             2.  **Fallback Response:** If a user's question CANNOT be answered from the knowledge base, you MUST respond with this exact phrase and nothing more: "I'm sorry, I don't have specific information on that topic. For more details, I would recommend contacting Tanner directly."
             3.  **Be Conversational:** Answer in a natural, helpful tone.
-            4.  **Use Markdown:** Use markdown for formatting, especially for lists (**bolding**, bullet points `*`).
+            4.  **Use Markdown:** Use markdown for formatting, especially for lists (**bolding**, bullet points \`*\`).
             5.  **Provide Links:** If a project has a web link, include it as a clickable markdown link in your response.
 
             **KNOWLEDGE BASE START**
@@ -327,7 +333,7 @@
 
             Now, please answer the following question from a potential employer or recruiter: "${userMessage}"`;
             
-            const response = await fetch(this.config.googleApiUrl, {
+            const response = await fetch(apiUrlWithKey, { // <-- Correct URL with key is now used
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -352,7 +358,6 @@
                 return result.candidates[0].content.parts[0].text;
             }
             
-            // Handle safety blocks or empty responses
             if (result.candidates && result.candidates[0].finishReason === 'SAFETY') {
                  return "The response was blocked for safety reasons. Please try rephrasing your question.";
             }

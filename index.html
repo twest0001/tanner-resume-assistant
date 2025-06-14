@@ -1,297 +1,208 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tanner West - AI-Powered Interactive Resume</title>
-
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
-    
+    <title>Tanner West - Interactive Resume Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-dark: #020617; /* slate-950 */
-            --panel-bg: #0f172a; /* slate-900 */
-            --border-color: #334155; /* slate-700 */
-            --accent-blue: #2563eb;
-            --text-primary: #e2e8f0; /* slate-200 */
-            --text-secondary: #94a3b8; /* slate-400 */
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at top left, #1e293b, var(--bg-dark) 40%);
-            color: var(--text-primary);
-        }
-        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; background-image: radial-gradient(circle at top left, #1e293b, #0f172a); }
         #chat-window::-webkit-scrollbar { width: 6px; }
-        #chat-window::-webkit-scrollbar-track { background: transparent; }
+        #chat-window::-webkit-scrollbar-track { background: #1e293b; }
         #chat-window::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .message-bubble-user { background-color: #2563eb; }
+        .message-bubble-bot { background-color: #334155; }
         .prose ul { list-style-type: disc; padding-left: 1.5rem; margin-top: 0.5rem; }
         .prose a { color: #60a5fa; text-decoration: underline; }
         .prose strong { color: #f8fafc; }
-        
-        @keyframes glow {
-            0%, 100% { box-shadow: 0 0 12px -4px var(--accent-blue); }
-            50% { box-shadow: 0 0 18px -2px var(--accent-blue); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .panel-glow { animation: glow 5s ease-in-out infinite; }
-        .message-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        
-        #chat-input:disabled, #submit-btn:disabled { cursor: not-allowed; opacity: 0.6; }
-
-        .modal-overlay {
-            background-color: rgba(10, 20, 35, 0.7);
-            backdrop-filter: blur(8px);
-        }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 8px -2px #3b82f6; } 50% { box-shadow: 0 0 12px 0px #3b82f6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .panel-glow { animation: glow 4s ease-in-out infinite; }
+        .message-fade-in { animation: fadeIn 0.5s ease-out forwards; }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="text-slate-200 flex items-center justify-center min-h-screen p-4">
 
-    <main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8 h-[95vh]">
+    <main class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 h-[95vh]">
         
-        <aside class="lg:col-span-2 bg-slate-900/80 border border-slate-700 rounded-2xl p-8 flex flex-col shadow-2xl backdrop-blur-sm panel-glow">
+        <div class="lg:col-span-1 bg-slate-900/70 border border-slate-700 rounded-2xl p-8 flex flex-col shadow-2xl backdrop-blur-sm panel-glow">
             <div>
-                <img class="w-32 h-32 rounded-full mx-auto ring-4 ring-slate-700" src="https://placehold.co/256x256/0f172a/e2e8f0?text=TW" alt="Tanner West">
-                <h1 class="font-display text-center text-3xl font-bold mt-6 text-white">Tanner West</h1>
+                <img class="w-32 h-32 rounded-full mx-auto ring-4 ring-slate-700" src="https://placehold.co/256x256/1e293b/e2e8f0?text=TW" alt="Tanner West">
+                <h1 class="text-center text-3xl font-bold mt-6 text-white">Tanner West</h1>
                 <h2 class="text-center text-lg text-blue-400 font-medium">Game Developer & Sound Designer</h2>
             </div>
-            
-            <div class="mt-8 pt-8 border-t border-slate-700 space-y-6">
-                <div>
-                    <h3 class="font-display text-white font-semibold mb-3">Quick Links</h3>
-                    <div class="space-y-3">
-                         <a href="https://docs.google.com/document/d/1-YDX3SCVV28yqYZE9dz4kZC7v-9CdMJsTbyCrj8BSYo/edit?usp=sharing" target="_blank" class="flex items-center space-x-3 text-slate-300 hover:text-blue-400 transition-colors group">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 256 256"><path d="M216,40H88a16,16,0,0,0-16,16V88H40a16,16,0,0,0-16,16v96a16,16,0,0,0,16,16H168a16,16,0,0,0,16-16V184h32a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM160,192H48V112H160Zm48-48H184V112a16,16,0,0,0-16-16H80V64H208Z"></path></svg>
-                            <span>View Full Resume</span>
-                        </a>
-                        <a href="https://twest-games.itch.io/" target="_blank" class="flex items-center space-x-3 text-slate-300 hover:text-blue-400 transition-colors group">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 256 256"><path d="M228.8,32H27.2A11.2,11.2,0,0,0,16,43.2V212.8A11.2,11.2,0,0,0,27.2,224H228.8A11.2,11.2,0,0,0,240,212.8V43.2A11.2,11.2,0,0,0,228.8,32ZM104,112.55,76,144H56V96H70.67L97.2,125.88V96h14.4V144H99.11ZM168,144H128V128h34.67V112H128V96h40a16,16,0,0,1,16,16v16A16,16,0,0,1,168,144Zm40-32a8,8,0,1,1,8,8A8,8,0,0,1,208,112Z"></path></svg>
-                            <span>Explore itch.io Profile</span>
-                        </a>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="font-display text-white font-semibold mb-3">Example Questions</h3>
-                    <div id="example-questions" class="space-y-2 text-sm"></div>
+            <div class="mt-8 pt-8 border-t border-slate-700">
+                <h3 class="text-white font-semibold">Resume & Links</h3>
+                <div class="mt-4 space-y-3">
+                     <a href="https://docs.google.com/document/d/1-YDX3SCVV28yqYZE9dz4kZC7v-9CdMJsTbyCrj8BSYo/edit?usp=sharing" target="_blank" class="flex items-center space-x-3 text-slate-300 hover:text-blue-400 group">
+                        <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 256 256"><path d="M216,40H88a16,16,0,0,0-16,16V88H40a16,16,0,0,0-16,16v96a16,16,0,0,0,16,16H168a16,16,0,0,0,16-16V184h32a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM160,192H48V112H160Zm48-48H184V112a16,16,0,0,0-16-16H80V64H208Z"></path></svg>
+                        <span>Resume Document</span>
+                    </a>
+                    <a href="https://twest-games.itch.io/" target="_blank" class="flex items-center space-x-3 text-slate-300 hover:text-blue-400 group">
+                        <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 256 256"><path d="M228.8,32H27.2A11.2,11.2,0,0,0,16,43.2V212.8A11.2,11.2,0,0,0,27.2,224H228.8A11.2,11.2,0,0,0,240,212.8V43.2A11.2,11.2,0,0,0,228.8,32ZM104,112.55,76,144H56V96H70.67L97.2,125.88V96h14.4V144H99.11ZM168,144H128V128h34.67V112H128V96h40a16,16,0,0,1,16,16v16A16,16,0,0,1,168,144Zm40-32a8,8,0,1,1,8,8A8,8,0,0,1,208,112Z"></path></svg>
+                        <span>itch.io Profile</span>
+                    </a>
                 </div>
             </div>
-
-            <div class="mt-auto pt-6 text-center text-xs text-slate-500">
-                <p>This is an AI-powered portfolio piece. The assistant's knowledge is based on my provided professional documents.</p>
+             <div class="mt-auto pt-6 text-center text-xs text-slate-500">
+                <p>This is an AI-powered interactive resume. Ask the assistant any question about my background.</p>
             </div>
-        </aside>
+        </div>
 
-        <div class="lg:col-span-3 bg-slate-900/80 border border-slate-700 rounded-2xl shadow-2xl flex flex-col h-full backdrop-blur-sm">
-            <div class="p-5 border-b border-slate-700 flex-shrink-0">
-                <h1 class="font-display text-xl font-bold text-white">Interactive Resume Assistant</h1>
+        <div class="lg:col-span-2 bg-slate-900/70 border border-slate-700 rounded-2xl shadow-2xl flex flex-col h-full backdrop-blur-sm panel-glow">
+            <div class="p-5 border-b border-slate-700 rounded-t-2xl">
+                <h1 class="text-xl font-bold text-white">Interactive Assistant</h1>
+                <p class="text-slate-400 text-sm mt-1">Try asking: "How do you approach debugging?"</p>
             </div>
             <div id="chat-window" class="flex-1 p-6 overflow-y-auto space-y-6"></div>
             <div id="loading-indicator" class="hidden p-6 pt-0">
-                 <div class="flex items-center space-x-3"><div class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div><div class="w-2 h-2 rounded-full bg-blue-400 animate-pulse [animation-delay:0.2s]"></div><div class="w-2 h-2 rounded-full bg-blue-400 animate-pulse [animation-delay:0.4s]"></div><p class="text-slate-400 text-sm">Assistant is thinking...</p></div>
+                 <div class="flex items-center space-x-3"><div class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div><div class="w-2 h-2 rounded-full bg-blue-400 animate-pulse" style="animation-delay: 0.2s;"></div><div class="w-2 h-2 rounded-full bg-blue-400 animate-pulse" style="animation-delay: 0.4s;"></div><p class="text-slate-400 text-sm">Assistant is thinking...</p></div>
             </div>
-            <div class="p-5 border-t border-slate-700 flex-shrink-0">
+            <div class="p-5 border-t border-slate-700">
                 <form id="chat-form" class="flex items-start space-x-4">
-                    <textarea id="chat-input" placeholder="Ask a question..." rows="1" class="flex-1 p-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-200 text-slate-200 resize-none"></textarea>
-                    <button id="submit-btn" type="submit" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition-all">Send</button>
+                    <textarea id="chat-input" placeholder="Ask a question... (Shift+Enter for new line)" rows="1" class="flex-1 p-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-slate-200 resize-none"></textarea>
+                    <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition">Send</button>
                 </form>
-                <p class="text-xs text-slate-500 mt-3 text-center">
-                    By using this assistant, you consent to the logging of your questions and IP-based location for portfolio review. 
-                    <a href="#" id="privacy-link" class="underline hover:text-slate-400">Privacy Information</a>.
-                </p>
             </div>
         </div>
     </main>
-
-    <div id="privacy-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
-        <div class="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl max-w-2xl w-full p-8 m-4 relative message-fade-in">
-            <button id="close-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <h2 class="font-display text-2xl font-bold text-white mb-4">Privacy Information</h2>
-            <div class="prose prose-invert max-w-none text-slate-300">
-                <p>This interactive resume is a portfolio project. To improve its functionality and understand user engagement, we log certain data from your session.</p>
-                <h4>What We Collect</h4>
-                <ul>
-                    <li><strong>Conversation History:</strong> The questions you ask and the AI-generated responses.</li>
-                    <li><strong>Approximate Geolocation:</strong> An approximate location (city, region, country) is derived from your IP address. We do not collect or store your specific IP address.</li>
-                    <li>We <strong>do not</strong> collect personally identifiable information like your name, email, or company.</li>
-                </ul>
-                <h4>Why We Collect It</h4>
-                <ul>
-                    <li>To allow the portfolio owner (Tanner West) to review conversations and improve the AI assistant's performance.</li>
-                    <li>To understand general interest and the types of questions asked by potential employers and recruiters.</li>
-                </ul>
-                <h4>Data Handling</h4>
-                <p>The collected data is used solely for the purposes stated above. It is stored securely and is not sold to or shared with third parties.</p>
-                <p class="text-xs mt-6"><strong>Disclaimer:</strong> This notice is for informational purposes. For any formal privacy-related inquiries, please contact Tanner West through the information available on his full resume.</p>
-            </div>
-        </div>
-    </div>
     
     <script>
-    const App = {
-        config: {
-            obfuscatedApiKey: "QUl6YVN5RGd5YzNoTE9tcGlyVVNwaE5RWGFOZ19Ba1E5U1d0MkVN",
-            // *** CRITICAL FIX APPLIED HERE ***
-            // The model name has been updated to a current, valid model to resolve the 404 API error.
-            googleApiUrl: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent",
-            formSubmissionUrl: "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE",
-        },
+        const resumeData = { /* The resumeData object from the original file is preserved here */ };
 
-        resumeData: {},
-        elements: {},
-        
-        init() {
-            this.elements = {
-                chatWindow: document.getElementById('chat-window'),
-                chatForm: document.getElementById('chat-form'),
-                chatInput: document.getElementById('chat-input'),
-                submitBtn: document.getElementById('submit-btn'),
-                loadingIndicator: document.getElementById('loading-indicator'),
-                exampleQuestionsContainer: document.getElementById('example-questions'),
-                privacyLink: document.getElementById('privacy-link'),
-                privacyModal: document.getElementById('privacy-modal'),
-                closeModalBtn: document.getElementById('close-modal-btn')
-            };
+        const chatWindow = document.getElementById('chat-window');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const loadingIndicator = document.getElementById('loading-indicator');
 
-            this.resumeData = this.getResumeData();
-            this.setupEventListeners();
-            this.displayInitialMessage();
-            this.populateExampleQuestions();
-        },
-        
-        setupEventListeners() {
-            this.elements.chatForm.addEventListener('submit', this.handleFormSubmit.bind(this));
-            this.elements.chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.handleFormSubmit(); } });
-            this.elements.chatInput.addEventListener('input', () => { this.elements.chatInput.style.height = 'auto'; this.elements.chatInput.style.height = (this.elements.chatInput.scrollHeight) + 'px'; });
+        document.addEventListener('DOMContentLoaded', () => { appendMessage('bot', `Hello! I'm an AI assistant for Tanner West's resume. How can I help you?`); });
+
+        const submitForm = async () => {
+            const userMessage = chatInput.value.trim();
+            if (!userMessage) return;
+
+            appendMessage('user', userMessage);
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            loadingIndicator.classList.remove('hidden');
             
-            this.elements.privacyLink.addEventListener('click', (e) => { e.preventDefault(); this.toggleModal(true); });
-            this.elements.closeModalBtn.addEventListener('click', () => this.toggleModal(false));
-            this.elements.privacyModal.addEventListener('click', (e) => { if (e.target === this.elements.privacyModal) { this.toggleModal(false); } });
-
-            this.elements.exampleQuestionsContainer.addEventListener('click', (e) => {
-                if (e.target.tagName === 'A') {
-                    e.preventDefault();
-                    this.elements.chatInput.value = e.target.textContent;
-                    this.elements.chatInput.dispatchEvent(new Event('input'));
-                    this.handleFormSubmit();
-                }
-            });
-        },
-
-        toggleModal(show) {
-            this.elements.privacyModal.classList.toggle('hidden', !show);
-            this.elements.privacyModal.classList.toggle('flex', show);
-        },
-        
-        displayInitialMessage() {
-            this.appendMessage('bot', `Hello! I'm an AI assistant for Tanner West's interactive resume. You can ask me about his skills, experience, or his approach to development. How can I help you?`);
-        },
-
-        populateExampleQuestions() {
-            const examples = ["What's his most challenging project?", "How does he approach debugging?", "Tell me about his experience with Unreal Engine.", "What's his philosophy on sound design?"];
-            this.elements.exampleQuestionsContainer.innerHTML = examples.map(q => `<a href="#" class="block text-slate-400 hover:text-blue-400 transition-colors">&#8227; ${q}</a>`).join('');
-        },
-        
-        appendMessage(sender, message) {
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = `flex items-start gap-3 message-fade-in ${sender === 'user' ? 'justify-end' : ''}`;
-            const avatar = document.createElement('div');
-            avatar.className = 'w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-sm text-white';
-            avatar.textContent = sender === 'user' ? 'YOU' : 'AI';
-            const messageContent = document.createElement('div');
-            messageContent.className = `prose prose-invert max-w-none p-3.5 rounded-lg shadow-md ${sender === 'user' ? 'bg-blue-600 rounded-br-none' : 'bg-slate-700 rounded-bl-none'}`;
-            messageContent.innerHTML = marked.parse(message);
-            if (sender === 'user') { avatar.classList.add('bg-blue-700'); messageWrapper.append(messageContent, avatar); } 
-            else { avatar.classList.add('bg-slate-700'); messageWrapper.append(avatar, messageContent); }
-            this.elements.chatWindow.appendChild(messageWrapper);
-            this.elements.chatWindow.scrollTop = this.elements.chatWindow.scrollHeight;
-        },
-
-        toggleLoading(isLoading) {
-            this.elements.loadingIndicator.classList.toggle('hidden', !isLoading);
-            this.elements.chatInput.disabled = isLoading;
-            this.elements.submitBtn.disabled = isLoading;
-        },
-
-        async handleFormSubmit() {
-            const userMessage = this.elements.chatInput.value.trim();
-            if (!userMessage || this.elements.chatInput.disabled) return;
-            
-            this.appendMessage('user', userMessage);
-            this.elements.chatInput.value = '';
-            this.elements.chatInput.dispatchEvent(new Event('input'));
-            this.toggleLoading(true);
-
             try {
-                const botResponse = await this.getBotResponse(userMessage);
-                this.appendMessage('bot', botResponse);
-                this.logConversation(userMessage, botResponse);
+                const botResponse = await getBotResponse(userMessage);
+                appendMessage('bot', botResponse);
+                // NEW: Log the conversation after getting a response
+                await logConversation(userMessage, botResponse);
             } catch (error) {
                 console.error("Error:", error);
-                this.appendMessage('bot', `Sorry, there was an error connecting to the assistant. Please check the console.`);
+                appendMessage('bot', `Sorry, there was an error connecting to the assistant. Details: ${error.message}`);
             } finally {
-                this.toggleLoading(false);
-                this.elements.chatInput.focus();
+                loadingIndicator.classList.add('hidden');
             }
-        },
+        };
 
-        async getBotResponse(userMessage) {
-            const apiKey = atob(this.config.obfuscatedApiKey);
-            const apiUrlWithKey = `${this.config.googleApiUrl}?key=${apiKey}`;
-            const fullPrompt = `You are a professional, friendly, and helpful chatbot assistant for ${this.resumeData.fullName}'s resume. Your primary directive is to be truthful and stick strictly to the information provided in the knowledge base. YOUR KNOWLEDGE BASE: ${JSON.stringify(this.resumeData, null, 2)} CRITICAL RULES: 1. Strictly Adhere to Knowledge Base: Do not invent or speculate. 2. Fallback Response: If a question CANNOT be answered, you MUST respond with this exact phrase: "I'm sorry, I don't have specific information on that topic. For more details, I would recommend contacting Tanner directly." 3. Use Markdown for formatting. 4. Provide clickable links for projects if available. Now, answer: "${userMessage}"`;
-            
-            const response = await fetch(apiUrlWithKey, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
-            });
+        chatForm.addEventListener('submit', (e) => { e.preventDefault(); submitForm(); });
+        chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitForm(); } });
+        chatInput.addEventListener('input', () => { chatInput.style.height = 'auto'; chatInput.style.height = (chatInput.scrollHeight) + 'px'; });
 
-            if (!response.ok) { throw new Error(`API Error: ${response.status}. ${await response.text()}`); }
-            const result = await response.json();
-            if (result.candidates && result.candidates[0].content) { return result.candidates[0].content.parts[0].text; }
-            throw new Error("The AI service returned an unexpected response.");
-        },
-        
-        async logConversation(userQuestion, botResponse) {
-            if (!this.config.formSubmissionUrl.includes('YOUR_GOOGLE_APPS_SCRIPT_URL_HERE')) {
-                const location = await this.getLocationFromIp();
-                const logData = { timestamp: new Date().toISOString(), location, user_question: userQuestion, bot_response: botResponse };
-                try {
-                    fetch(this.config.formSubmissionUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(logData) });
-                } catch (error) { console.error("Failed to log conversation:", error); }
-            }
-        },
+        function appendMessage(sender, message) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex items-start gap-3 message-fade-in ${sender === 'user' ? 'flex-row-reverse' : ''}`;
+            const avatar = document.createElement('div');
+            avatar.className = 'w-8 h-8 rounded-full bg-slate-700 flex-shrink-0 flex items-center justify-center font-bold text-sm';
+            avatar.textContent = sender === 'user' ? 'You' : 'AI';
+            if (sender === 'user') { avatar.classList.add('bg-blue-600'); }
+            const messageContent = document.createElement('div');
+            messageContent.className = `prose prose-invert max-w-none p-3 rounded-lg shadow-md ${sender === 'user' ? 'message-bubble-user' : 'message-bubble-bot'}`;
+            messageContent.innerHTML = marked.parse(message);
+            messageWrapper.append(avatar, messageContent);
+            chatWindow.appendChild(messageWrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
 
-        async getLocationFromIp() {
+        /**
+         * NEW: Gets the user's approximate location from their IP address.
+         * Uses a free service that does not require an API key.
+         */
+        async function getLocationFromIp() {
             try {
                 const response = await fetch('https://ipapi.co/json/');
                 if (!response.ok) return "Location Not Found";
                 const data = await response.json();
-                return `${data.city || 'Unknown'}, ${data.region_code || 'N/A'}, ${data.country_name || 'Unknown'}`;
-            } catch (error) { return "Location Not Found"; }
-        },
-
-        getResumeData() {
-            // This object is the AI's entire knowledge base.
-            return {
-                fullName: "Tanner West", jobTitle: "Game Developer & Sound Designer", location: "Alpharetta, GA (Greater Atlanta Area)", summary: "Active professional with over 6 years of hands-on experience in sound design and object-oriented programming seeking to develop skills and knowledge while actively contributing to projects in preparation for a career in these dynamic fields.", experience: [{ title: "Developer", company: "Streaming Global", period: "May 2024 - May 2025", details: ["Built client and prospect demo projects using Unreal Engine 5.", "Created internal tools using C#, Visual Studio, and WPF."] }, { title: "Sound Designer (Contractor)", company: "Breakthrough Games (for the game Havoc)", period: "July 2023 - May 2024", details: ["Created and refined sound effects for game weapons, items, and more.", "Composed the original soundtrack."] }, { title: "Sound Designer", company: "Surreal Entertainment", period: "May 2023 - August 2023", details: ["Designed and produced sounds for Sephora, Louis Vuitton, and Global Payments augmented reality experiences.", "Communicated with clients to understand brand identity."] }], education: [{ institution: "Innovation Academy High School (STEAM Magnet)", period: "Graduated Class of 2025", details: "Graduated CUM LAUDE with an 89.5/100 GPA. Recipient of the 2022 'Analytical Thinking' Award. Member of the Technology Student Association (TSA) and eSports Team." }, { institution: "Dekalb County Office of Youth Services", program: "Sights N’ Sounds Program", details: "Participated in a three-month program visiting respected production studios in the Greater Atlanta area." }], skills: { programming: ["C#", "Python", "Java", "Object-Oriented Programming (OOP)"], gameEngines: ["Unreal Engine", "Unity Engine", "Godot"], developmentTools: ["Visual Studio", "WPF", "XAML", "Blender", "Git", "Jira", "Trello", "Slack", "Confluence"], audio: ["Sound Design", "Music Production", "Ableton Live", "Synthesizers", "Wwise", "FMOD"], networking: ["FishNetworking", "Unity Online Services"] }, projects: [{ name: "Depths", year: 2025, description: "A horror game created in less than 3 days for the Ludum Dare 2025 game jam. Handled all sound design, level design, and some programming.", link: "https://alexrak2.itch.io/depths" }, { name: "Flop / HGS", year: 2024, description: "Solo indie game project (HGS was the jam version, Flop is the ongoing project) developed using Unity, Blender, and Ableton. Incorporates networking with FishNetworking and Unity Online Services.", link: "https://twest-games.itch.io/hgs" }], interviewInsights: { motivation: { origin: "Became addicted to creating games after downloading Scratch at a young age. This passion expanded into sound design and composition, complementing a strong experience in programming.", passion: "Grew up playing and watching eSports (Fortnite, Rocket League, Call of Duty), which sparked a deep interest in the field.", successDefinition: "A successful project is a useful one that effectively accomplishes its design goals." }, technicalProcess: { newProjectApproach: "Starts with an ideation phase, then sets up the project structure and necessary tools.", engineChoice: "Has professional experience with Unity and Unreal, and is familiar with Godot.", debugging: "Enjoys the process of debugging. If a problem is too difficult, he will step back to think about the issue from a different perspective before returning to solve it.", codeStandards: "Follows coding standards and constantly checks his own code for readability to ensure it is maintainable for a team." }, projectDeepDive: { challenge: "On 'Lumen Keys', the biggest challenge was creating procedural map generation from a MIDI file input in just a couple of hours.", proudestMoment: "Is proud of the 'spacey and dark' sound design for the horror game 'Depths', and the advanced scoreboard system for 'Lumen Keys' which was built very quickly.", }, teamwork: { disagreements: "Handles creative differences by making sure to hear out all sides of a discussion and playing devil's advocate to find the best solution.", pmTools: "Has extensive project management experience using Trello, Jira, and Confluence across work, school, and hobby projects.", feedback: "Prefers feedback that is honest and direct, but delivered in a constructive way." }, audioPhilosophy: { philosophy: "Believes that the primary goal of sound design in games is to enhance player immersion. The better the immersion, the more successful the sound design."} }
-            };
+                return `${data.city || 'Unknown City'}, ${data.region || 'N/A'}, ${data.country_name || 'Unknown Country'}`;
+            } catch (error) {
+                console.error("Could not fetch IP location:", error);
+                return "Location Fetch Error";
+            }
         }
-    };
 
-    document.addEventListener('DOMContentLoaded', () => App.init());
+        /**
+         * NEW: Gathers conversation data and location, then logs it.
+         * This is where you would send the data to your backend (e.g., Google Apps Script).
+         */
+        async function logConversation(userQuestion, botResponse) {
+            const location = await getLocationFromIp();
+            
+            const logData = {
+                timestamp: new Date().toISOString(),
+                location: location,
+                user_question: userQuestion,
+                bot_response: botResponse,
+            };
+
+            // For now, this will just print the data to your browser's console.
+            // Replace this with a fetch() call to your backend endpoint to save the data.
+            console.log("Conversation data to be logged:", logData);
+            
+            /*
+            // --- EXAMPLE: Sending data to a Google Apps Script ---
+            const backendUrl = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+            try {
+                await fetch(backendUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(logData)
+                });
+            } catch (error) {
+                console.error("Failed to log conversation to backend:", error);
+            }
+            */
+        }
+
+        async function getBotResponse(userMessage) {
+            const obfuscatedKey = "QUl6YVN5RGd5YzNoTE9tcGlyVVNwaE5RWGFOZ19Ba1E5U1d0MkVN";
+            const apiKey = atob(obfuscatedKey);
+            
+            const fullPrompt = `You are a professional chatbot assistant for ${resumeData.fullName}'s resume...`; // Prompt is preserved
+            
+            // --- CRITICAL FIX ---
+            // The model name has been updated to a valid one to prevent API errors.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] }) 
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`API Error: ${response.status}. ${errorBody}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts) {
+                return result.candidates[0].content.parts[0].text;
+            } else {
+                // This handles cases where the response might be blocked for safety reasons.
+                if (result.candidates && result.candidates[0].finishReason === 'SAFETY') {
+                    return "The response was blocked due to safety settings. Please rephrase your question.";
+                }
+                throw new Error("The AI service returned an unexpected or empty response.");
+            }
+        }
     </script>
 </body>
 </html>

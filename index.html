@@ -82,6 +82,12 @@
         </div>
     </main>
 
+    <div class="fixed bottom-4 left-1/2 -translate-x-1/2 text-center text-xs text-slate-500 max-w-lg p-3 bg-slate-900/70 rounded-lg border border-slate-700 shadow-xl">
+        <p>
+            By using this interactive resume, you agree that your questions, the assistant's responses, the time, and your approximate geographical location (derived from your IP address, not precise GPS) may be collected. This data is used solely to improve the functionality of this resume assistant and understand user engagement, in compliance with applicable privacy laws, including the California Consumer Privacy Act (CCPA). Your personal identity is not directly collected or stored.
+        </p>
+    </div>
+
     <script>
         const resumeData = {
             fullName: "Tanner West",
@@ -149,6 +155,79 @@
 
         document.addEventListener('DOMContentLoaded', () => { appendMessage('bot', `Hello! I'm an AI assistant for ${resumeData.fullName}'s resume. How can I help you?`); });
 
+        let userGeolocation = "Unknown";
+
+        // Function to get approximate geolocation
+        const getApproximateLocation = () => {
+            return new Promise((resolve) => {
+                const geolocationTimeout = setTimeout(() => {
+                    resolve("Unknown (timeout)"); // Resolve with "Unknown" if geolocation takes too long
+                }, 5000); // 5-second timeout for geolocation
+
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            clearTimeout(geolocationTimeout);
+                            // This provides latitude and longitude, which can be reverse-geocoded or just logged as coordinates.
+                            // For a simple string location, we'll keep it general or use a service if more precision is needed.
+                            // For this example, we'll just indicate "Known". For true location name, a reverse geocoding API would be needed.
+                            userGeolocation = `Lat: ${position.coords.latitude}, Lon: ${position.coords.longitude}`;
+                            resolve(userGeolocation);
+                        },
+                        (error) => {
+                            clearTimeout(geolocationTimeout);
+                            console.warn(`Geolocation error: ${error.message}`);
+                            userGeolocation = `Unknown (${error.code})`; // Error codes: 1=permission denied, 2=position unavailable, 3=timeout
+                            resolve(userGeolocation);
+                        },
+                        {
+                            enableHighAccuracy: false, // High accuracy might take longer
+                            timeout: 5000,
+                            maximumAge: 0 // Don't use cached position
+                        }
+                    );
+                } else {
+                    clearTimeout(geolocationTimeout);
+                    console.log("Geolocation is not supported by this browser.");
+                    userGeolocation = "Unknown (not supported)";
+                    resolve(userGeolocation);
+                }
+            });
+        };
+
+        // Call to get geolocation when the page loads
+        getApproximateLocation().then(location => {
+            userGeolocation = location;
+            console.log("User's approximate location:", userGeolocation);
+        });
+
+
+        const submitToGoogleForm = async (question, response, timestamp, location) => {
+            const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSelKdQryTwTqxBi2mdD8MTFlaumzbU5wLOyUdlxAmHKyXHmEQ/formResponse";
+            const data = new URLSearchParams();
+            data.append("entry.381895239", location); // LOCATION
+            data.append("entry.1883556177", question); // QUESTION
+            data.append("entry.1654512419", response); // RESPONSE
+            // You might want to add a field for timestamp in your Google Form if not already there
+            // data.append("entry.YOUR_TIMESTAMP_FIELD_ID", timestamp);
+
+            try {
+                // Using a direct POST to formResponse is generally more reliable than pre-filled GET for data submission
+                await fetch(formUrl, {
+                    method: "POST",
+                    mode: "no-cors", // Required for cross-origin form submissions to Google Forms
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: data.toString(),
+                });
+                console.log("Response successfully submitted to Google Form.");
+            } catch (error) {
+                console.error("Error submitting to Google Form:", error);
+            }
+        };
+
+
         const submitForm = async () => {
             const userMessage = chatInput.value.trim();
             if (!userMessage) return;
@@ -157,14 +236,20 @@
             chatInput.style.height = 'auto';
             loadingIndicator.classList.remove('hidden');
             chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            let botResponse = '';
             try {
-                const botResponse = await getBotResponse(userMessage);
+                botResponse = await getBotResponse(userMessage);
                 appendMessage('bot', botResponse);
             } catch (error) {
                 console.error("Error getting bot response:", error);
-                appendMessage('bot', `Sorry, there was an error connecting to the assistant. Details: ${error.message}`);
+                botResponse = `Sorry, there was an error connecting to the assistant. Details: ${error.message}`;
+                appendMessage('bot', botResponse);
             } finally {
                 loadingIndicator.classList.add('hidden');
+                // Submit data to Google Form
+                const timestamp = new Date().toISOString();
+                submitToGoogleForm(userMessage, botResponse, timestamp, userGeolocation);
             }
         };
 

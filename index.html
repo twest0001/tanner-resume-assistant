@@ -54,7 +54,7 @@
         <div class="lg:col-span-2 bg-slate-900/70 border border-slate-700 rounded-2xl shadow-2xl flex flex-col h-full backdrop-blur-sm panel-glow">
             <div class="p-5 border-b border-slate-700 rounded-t-2xl">
                 <h1 class="text-xl font-bold text-white">Interactive Hiring Assistant</h1>
-                <p class="text-slate-400 text-sm mt-1">My goal is to show you why Tanner is a great candidate. Try asking a question!</p>
+                <p class="text-slate-400 text-sm mt-1">My goal is to show you why Tanner is a great candidate. Ask me anything!</p>
             </div>
             <div id="chat-window" class="flex-1 p-6 overflow-y-auto space-y-6"></div>
             <div id="loading-indicator" class="hidden p-6 pt-0">
@@ -62,40 +62,80 @@
             </div>
             <div class="p-5 border-t border-slate-700">
                 <form id="chat-form" class="flex items-start space-x-4">
-                    <textarea id="chat-input" placeholder="e.g., What is his experience with game engines?" rows="1" class="flex-1 p-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-slate-200 resize-none"></textarea>
-                    <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition">Send</button>
+                    <textarea id="chat-input" placeholder="e.g., Why should I hire him?" rows="1" class="flex-1 p-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-slate-200 resize-none"></textarea>
+                    <button id="submit-btn" type="submit" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition">Send</button>
                 </form>
             </div>
         </div>
     </main>
     
     <script>
-        const resumeData = { /* The resumeData object from the original file is preserved here */ };
-
         const chatWindow = document.getElementById('chat-window');
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const loadingIndicator = document.getElementById('loading-indicator');
+        const submitBtn = document.getElementById('submit-btn');
 
-        document.addEventListener('DOMContentLoaded', () => { appendMessage('bot', `Hello! I am Tanner West's AI hiring assistant. My goal is to demonstrate why he is an exceptional candidate for your team. Please feel free to ask me anything about his skills and experience.`); });
+        // The entire knowledge base for the AI is stored here.
+        const resumeData = {
+            fullName: "Tanner West",
+            jobTitle: "Game Developer & Sound Designer",
+            summary: "Active professional with over 6 years of hands-on experience in sound design and object-oriented programming seeking to develop skills and knowledge while actively contributing to projects in preparation for a career in these dynamic fields.",
+            experience: [
+                { title: "Developer", company: "Streaming Global", period: "May 2024 - May 2025", details: ["Built client and prospect demo projects using Unreal Engine 5.", "Created internal tools using C#, Visual Studio, and WPF."] },
+                { title: "Sound Designer (Contractor)", company: "Breakthrough Games | Havoc", period: "July 2023 - May 2024", details: ["Created and refined sound effects for game weapons, items, and more.", "Composed the original soundtrack."] },
+                { title: "Sound Designer", company: "Surreal Entertainment", period: "May 2023 - August 2023", details: ["Designed and produced sounds for Sephora, Louis Vuitton, and Global Payments augmented reality experiences.", "Communicated with clients to understand brand identity."] }
+            ],
+            education: [
+                { degree: "High School Diploma", institution: "Innovation Academy High School (STEAM Magnet)", period: "Class of 2025", details: "Graduated CUM LAUDE with an 89.5/100 GPA." },
+                { degree: "Sights N’ Sounds Program", institution: "Dekalb County Office of Youth Services", details: "Participated in a three-month program visiting respected production studios in the Greater Atlanta area." }
+            ],
+            skills: {
+                programming: ["C#", "Python", "Java", "Object-Oriented Programming"],
+                gameEngines: ["Unreal Engine", "Unity Engine", "Godot"],
+                developmentTools: ["Visual Studio", "WPF", "Blender", "Git", "Jira", "Trello"],
+                audio: ["Sound Design", "Music Production", "Ableton Live", "Synthesizers", "Wwise", "FMOD"],
+            },
+            projects: [
+                { name: "Flop (HGS)", description: "Solo indie game project developed using Unity, Blender, and Ableton. It incorporates networking with FishNetworking and Unity Online Services.", link: "N/A" },
+                { name: "Airblast", description: "Served as the main programmer and composer for this Godot project made for a TSA state competition.", link: "https://airblast.itch.io/airblast" },
+                { name: "Depths", description: "A horror game created in less than 3 days for the Ludum Dare 2025 game jam. Handled all sound design, level design, and some programming.", link: "https://alexrak2.itch.io/depths" }
+            ],
+            interviewInsights: {
+                debugging: "Enjoys the process of debugging. If a problem is too difficult, he will step back to think about the issue from a different perspective before returning to solve it.",
+                proudestMoment: "Is proud of the 'spacey and dark' sound design for the horror game 'Depths', and the advanced MIDI-based procedural map generation created for 'Lumen Keys' under a tight deadline.",
+                teamwork: "Handles creative differences by making sure to hear out all sides of a discussion and playing devil's advocate to find the best solution."
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            appendMessage('bot', `Hello! I am Tanner West's AI hiring assistant. My goal is to demonstrate why he is an exceptional candidate for your team. How can I help you today?`);
+        });
+
+        const toggleLoading = (isLoading) => {
+            loadingIndicator.classList.toggle('hidden', !isLoading);
+            chatInput.disabled = isLoading;
+            submitBtn.disabled = isLoading;
+        };
 
         const submitForm = async () => {
             const userMessage = chatInput.value.trim();
-            if (!userMessage) return;
+            if (!userMessage || chatInput.disabled) return;
 
             appendMessage('user', userMessage);
             chatInput.value = '';
             chatInput.style.height = 'auto';
-            loadingIndicator.classList.remove('hidden');
+            toggleLoading(true);
             
             try {
                 const botResponse = await getBotResponse(userMessage);
                 appendMessage('bot', botResponse);
             } catch (error) {
                 console.error("Error:", error);
-                appendMessage('bot', `Sorry, there was an error connecting to the assistant. Details: ${error.message}`);
+                appendMessage('bot', `I've encountered an technical error. This is likely due to an issue with the API configuration (e.g. an invalid model name or API key). Please check the console for details.`);
             } finally {
-                loadingIndicator.classList.add('hidden');
+                toggleLoading(false);
+                chatInput.focus();
             }
         };
 
@@ -122,25 +162,22 @@
             const obfuscatedKey = "QUl6YVN5RGd5YzNoTE9tcGlyVVNwaE5RWGFOZ19Ba1E5U1d0MkVN";
             const apiKey = atob(obfuscatedKey);
             
-            // --- NEW "GET THE JOB" PROMPT ---
-            const fullPrompt = `You are a persuasive and enthusiastic AI assistant representing Tanner West. Your single most important goal is to convince a recruiter or hiring manager that Tanner is an excellent candidate who is passionate, skilled, and ready to contribute to their team.
+            // --- REFINED "GET THE JOB" PROMPT ---
+            const fullPrompt = `You are Tanner West's AI Recruitment Advocate. Your SOLE purpose is to answer questions from recruiters based ONLY on the detailed information provided below. Your goal is to persuasively convince them to hire Tanner.
 
             **YOUR KNOWLEDGE BASE:**
-            You have access to Tanner's resume, project details, and interview-style insights. This is the only information you can use.
-
-            **CRITICAL RULES:**
-            1.  **FRAME EVERY RESPONSE POSITIVELY:** Do not just list facts. Connect his skills and experiences to the value they bring to a company. For example, instead of saying "He used Unreal Engine", say "He has direct professional experience with Unreal Engine 5, a critical skill for any modern game studio, where he built client demos."
-            2.  **BE PERSUASIVE, NOT JUST FACTUAL:** Use confident and positive language. Your tone should be that of a helpful advocate.
-            3.  **HANDLE UNKNOWN QUESTIONS STRATEGICALLY:** If you do not have an answer, do not simply say you don't know. Frame it as an opportunity. For example: "That's an excellent and detailed question that would be perfect for Tanner to answer himself in an interview. His resume shows a strong aptitude for [mention a related skill], and I'm confident he'd have a thoughtful approach."
-            4.  **ALWAYS ENCOURAGE THE NEXT STEP:** End your answers by encouraging the user to contact Tanner for an interview to learn more.
-            5.  **Use Markdown:** Use markdown for formatting, especially **bolding** key skills and bullet points, to make your points impactful.
-
-            **KNOWLEDGE BASE START**
+            This is the only information you are allowed to use.
             ${JSON.stringify(resumeData, null, 2)}
-            **KNOWLEDGE BASE END**
 
-            Now, using these rules, provide a compelling answer to the following question from a potential employer: "${userMessage}"`;
+            **CRITICAL RULES OF ENGAGEMENT:**
+            1.  **NEVER ASK FOR INFORMATION:** You already have all the information about Tanner. Absolutely do not ask the user for details about him. Your job is to ANSWER questions, not ask them. If you break this rule, you fail.
+            2.  **BE A PERSUASIVE ADVOCATE:** Do not just list facts. Connect Tanner's skills to the value they bring. Frame every response positively to highlight his strengths as a candidate. For example, instead of "He used Unreal Engine", say "He has direct professional experience with **Unreal Engine 5**, a critical skill for any modern game studio, which he used to build client demos."
+            3.  **STRATEGICALLY HANDLE UNKNOWN QUESTIONS:** If a question cannot be answered from your knowledge base, do not say "I don't know." Instead, pivot to a positive statement and encourage an interview. Say: "That's an excellent, detailed question that would be perfect for Tanner to answer himself in an interview. Based on his resume, he has strong problem-solving skills and I'm confident he'd have a thoughtful approach."
+            4.  **ALWAYS ENCOURAGE THE NEXT STEP:** Where appropriate, end answers by encouraging the recruiter to reach out to Tanner for an interview to discuss his qualifications further.
+
+            Based on these strict rules and the provided knowledge base, give a compelling answer to the following potential employer's question: "${userMessage}"`;
             
+            // --- CORRECTED AND VALID AI MODEL ---
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
@@ -149,7 +186,7 @@
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: fullPrompt }] }],
                     generationConfig: {
-                        temperature: 0.6, // Slightly higher for more persuasive, less robotic text
+                        temperature: 0.6,
                         topP: 0.95,
                     }
                 }) 
@@ -166,7 +203,7 @@
                 return result.candidates[0].content.parts[0].text;
             } else {
                 if (result.candidates && result.candidates[0].finishReason === 'SAFETY') {
-                    return "The response was blocked due to safety settings. This can sometimes happen with complex questions. Please feel free to rephrase and try again!";
+                    return "The response was blocked due to safety settings. Please rephrase your question.";
                 }
                 throw new Error("The AI service returned an unexpected or empty response.");
             }
